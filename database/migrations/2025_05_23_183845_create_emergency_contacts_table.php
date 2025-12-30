@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('emergency_contacts', function (Blueprint $table) {
+            $table->id('emergency_contact_id');
+
+            $table->unsignedBigInteger('personal_data_id')->index();
+            $table->foreign('personal_data_id')
+                ->references('personal_data_id')
+                ->on('personal_data')
+                ->onDelete('cascade');
+
+            $table->string('full_name', 100);
+            $table->string('phone_number', 20);
+            $table->string('relationship', 50);
+
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('emergency_contacts');
+    }
+};

@@ -1,0 +1,76 @@
+.detail-wrapper {
+    max-width: 700px;
+    margin: 2rem auto;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.detail-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #1f2937;
+}
+
+.document-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+.document-item {
+    margin-bottom: 1rem;
+}
+
+.document-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.document-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.no-documents {
+    font-style: italic;
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+
+.btn-back,
+.btn-download-zip {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-back {
+    background-color: #e5e7eb;
+    color: #111827;
+    margin-right: 1rem;
+}
+
+.btn-back:hover {
+    background-color: #d1d5db;
+}
+
+.btn-download-zip {
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+.btn-download-zip:hover {
+    background-color: #059669;
+    transform: scale(1.02);
+}
+
+

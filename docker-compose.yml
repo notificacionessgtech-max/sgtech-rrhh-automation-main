@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  rrhh-backend:
+    image: jjmendez/sgtech-rrhh-app:latest
+    container_name: sgtech-rrhh-backend
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - rrhh-mysql
+    environment:
+      DB_HOST: rrhh-mysql
+      DB_DATABASE: sgtech_rrhh_app
+      DB_USERNAME: sgtech_app_user
+      DB_PASSWORD: SgTechP@ss2025
+    networks:
+      - sgtech-rrhh-network
+
+  rrhh-nginx:
+    image: nginx:latest
+    container_name: sgtech-rrhh-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+      - .docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - rrhh-backend
+    networks:
+      - sgtech-rrhh-network
+
+  rrhh-mysql:
+    image: mysql:8.0
+    container_name: sgtech-rrhh-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sgtech_rrhh_app
+      MYSQL_USER: sgtech_app_user
+      MYSQL_PASSWORD: SgTechP@ss2025
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./.docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - sgtech-rrhh-network
+
+volumes:
+  dbdata:
+
+networks:
+  sgtech-rrhh-network:

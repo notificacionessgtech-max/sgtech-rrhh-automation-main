@@ -1,0 +1,6 @@
+node_modules
+vendor
+tests
+.DS_Store
+storage/logs/*
+storage/framework/*
