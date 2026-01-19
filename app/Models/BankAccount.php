@@ -26,9 +26,7 @@ class BankAccount extends Model
         'severance_pay_fund',
     ];
 
-    public static function create(array $array)
-    {
-    }
+
 
     public function personalData(): BelongsTo
     {

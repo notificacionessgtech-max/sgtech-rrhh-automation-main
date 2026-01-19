@@ -46,6 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/send-invitation', [SendWelcomeEmailController::class, 'sendWelcomeEmail'])
         ->name('send.welcome.email');
 
+    // Redirección defensiva para evitar error 405 si se accede por GET
+    Route::get('/send-invitation', function () {
+        return redirect()->route('send.email.view');
+    });
+
     Route::get('/invitations', [HiringFormController::class, 'getInvitations'])
         ->name('invitations');
 
@@ -55,8 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employee/{id}', [HiringFormController::class, 'getEmployeeInformationForModal'])
         ->name('get.employee.data');
 
-    Route::get('/employees/{id}/download-all', [HiringFormController::class, 'PersonalDocument']
-    )->name('employees.download.all');
+    Route::get('/employee/{id}', [HiringFormController::class, 'getEmployeeInformationForModal'])
+        ->name('get.employee.data');
 });
 /*
 |--------------------------------------------------------------------------
@@ -86,6 +91,12 @@ Route::get('/register/{uuid}', [HiringFormController::class, 'showHiringForm'])
 Route::post('/hiring/register', [HiringFormController::class, 'store'])
     ->name('hiring.post');
 
+Route::get('/hiring/signature/{id}', [HiringFormController::class, 'showSignatureForm'])
+    ->name('hiring.signature.view');
+
+Route::post('/hiring/signature/{id}', [HiringFormController::class, 'saveSignature'])
+    ->name('hiring.signature.save');
+
 Route::get('/thank-you', function () {
     return view('hiring-form.thank-you');
 })->name('hiring.form.thank_you');
@@ -102,17 +113,23 @@ use App\Http\Controllers\DocumentController;
 // Rutas para documentos
 Route::prefix('documents')->group(function () {
     // Verificar documentos (para AJAX)
-    Route::get('/employee/{id}/check',
-        [DocumentController::class, 'checkDocuments'])
+    Route::get(
+        '/employee/{id}/check',
+        [DocumentController::class, 'checkDocuments']
+    )
         ->name('documents.check');
 
     // Página de debug (opcional)
-    Route::get('/employee/{id}/debug',
-        [DocumentController::class, 'debugDocuments'])
+    Route::get(
+        '/employee/{id}/debug',
+        [DocumentController::class, 'debugDocuments']
+    )
         ->name('documents.debug');
 
     // AÑADE ESTA LÍNEA NUEVA
-    Route::get('/employees/{id}/download-all',
-        [DocumentController::class, 'downloadAllDocuments'])
+    Route::get(
+        '/employees/{id}/download-all',
+        [DocumentController::class, 'downloadAllDocuments']
+    )
         ->name('employees.download.all');
 });

@@ -17,6 +17,24 @@ use Illuminate\Support\Facades\DB;
 class HiringFormController extends Controller
 {
     /**
+     * Genera el nombre de la carpeta del empleado
+     * Formato: Nombre_Apellido_DNI
+     */
+    private function getEmployeeFolderName($employee)
+    {
+        $firstName = $employee->first_name ?? '';
+        $lastName = $employee->last_name ?? '';
+        $dni = $employee->dni ?? '';
+
+        // Sanitizar nombres (quitar caracteres especiales y espacios)
+        $firstName = preg_replace('/[^A-Za-z0-9]/', '_', $firstName);
+        $lastName = preg_replace('/[^A-Za-z0-9]/', '_', $lastName);
+        $dni = preg_replace('/[^A-Za-z0-9]/', '_', $dni);
+
+        return "{$firstName}_{$lastName}_{$dni}";
+    }
+
+    /**
      * Obtiene información completa del empleado para el modal
      */
     public function getEmployeeInformationForModal($id)
@@ -145,11 +163,11 @@ class HiringFormController extends Controller
 
                 // FAMILY
                 'relationship' => 'nullable|string',
-                'family_data_dni' => 'nullable|string',
+                'family_dni' => 'nullable|string',
                 'full_name' => 'nullable|string',
                 'age' => 'nullable|integer',
-                'family_data_gender' => 'nullable|in:male,female',
-                'family_data_birthdate' => 'nullable|date',
+                'family_gender' => 'nullable|in:male,female',
+                'family_birthdate' => 'nullable|date',
 
                 // EMERGENCY
                 'emergency_contact_full_name' => 'required|string|max:100',
@@ -234,11 +252,11 @@ class HiringFormController extends Controller
                 FamilyData::create([
                     'personal_data_id' => $personal->personal_data_id,
                     'relationship' => $validated['relationship'] ?? null,
-                    'dni' => $validated['family_data_dni'] ?? null,
+                    'dni' => $validated['family_dni'] ?? null,
                     'full_name' => $validated['full_name'],
                     'age' => $validated['age'] ?? null,
-                    'gender' => $validated['family_data_gender'] ?? null,
-                    'birthdate' => $validated['family_data_birthdate'] ?? null,
+                    'gender' => $validated['family_gender'] ?? null,
+                    'birthdate' => $validated['family_birthdate'] ?? null,
                 ]);
             }
 
@@ -250,11 +268,15 @@ class HiringFormController extends Controller
                 'relationship' => $validated['emergency_contact_relationship'],
             ]);
 
-            // DOCUMENTOS - Manejar como array
+            // DOCUMENTOS - Guardar en carpeta del empleado
             if ($request->hasFile('documents')) {
+                // Generar nombre de carpeta del empleado
+                $employeeFolderName = $this->getEmployeeFolderName($personal);
+
                 foreach ($request->file('documents') as $type => $file) {
                     if ($file->isValid()) {
-                        $path = $file->store("personal_documents/{$personal->personal_data_id}", 'public');
+                        // Nueva ruta: employees/{Nombre_Apellido_DNI}/documents/
+                        $path = $file->store("employees/{$employeeFolderName}/documents", 'public');
 
                         PersonalDocument::create([
                             'personal_data_id' => $personal->personal_data_id,
@@ -279,20 +301,23 @@ class HiringFormController extends Controller
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Formulario enviado correctamente.'
+                    'message' => 'Formulario enviado correctamente.',
+                    'redirect_url' => route('hiring.signature.view', ['id' => $personal->personal_data_id])
                 ]);
             }
 
-            return redirect()->route('hiring.form.thank_you')
-                ->with('success', 'Formulario enviado correctamente.');
+
+            return redirect()->route('hiring.signature.view', ['id' => $personal->personal_data_id]);
+
 
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error en HiringFormController@store: ' . $e->getMessage()); // <--- ADDED LOGGING
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error al guardar el formulario.',
+                    'message' => 'Error técnico: ' . $e->getMessage(),
                     'error' => $e->getMessage()
                 ], 500);
             }
@@ -300,13 +325,210 @@ class HiringFormController extends Controller
             return back()
                 ->withInput()
                 ->with('error', 'Error al guardar el formulario: ' . $e->getMessage());
-            }
         }
+    }
 
-    public function PersonalDocument(string $id)
+
+
+    public function showSignatureForm($id)
     {
+        $employee = PersonalData::findOrFail($id);
+        return view('hiring-form.signature', compact('employee'));
+    }
 
+    public function saveSignature(Request $request, $id)
+    {
+        $request->validate([
+            'signature' => 'required|string',
+        ]);
 
+        $employee = PersonalData::findOrFail($id);
+
+        try {
+            // 1. Generar nombre de carpeta del empleado
+            $employeeFolderName = $this->getEmployeeFolderName($employee);
+
+            // 2. Decodificar y Guardar Imagen en carpeta del empleado
+            $image = $request->signature;
+            $image = str_replace('data:image/png;base64,', '', $image);
+            $image = str_replace(' ', '+', $image);
+            $imageName = 'signature.png'; // Nombre fijo para la firma
+            $path = "employees/{$employeeFolderName}/{$imageName}";
+
+            \Storage::disk('public')->put($path, base64_decode($image));
+
+            // 3. Guardar en Base de Datos
+            \App\Models\Signature::create([
+                'personal_data_id' => $employee->personal_data_id,
+                'file_path' => $path,
+                'signed_at' => now(),
+                'ip_address' => $request->ip(),
+            ]);
+
+            // 4. Enviar a n8n
+            $webhookUrl = env('N8N_SIGNATURE_WEBHOOK_URL');
+
+            if ($webhookUrl) {
+                try {
+                    // Cargar todas las relaciones necesarias para el reporte completo
+                    $employee->load([
+                        'familyData',
+                        'healthData',
+                        'academicInformation',
+                        'additionalEducations',
+                        'emergencyContacts',
+                        'bankAccounts',
+                        'documents'
+                    ]);
+
+                    // Preparar enlaces de documentos
+                    $documentsList = [];
+                    foreach ($employee->documents as $doc) {
+                        $documentsList[$doc->document_type] = asset('storage/' . $doc->file_path);
+                    }
+
+                    // Preparar archivos en Base64 para n8n (Bypass localhost issue)
+                    $documentsFiles = [];
+                    foreach ($employee->documents as $doc) {
+                        try {
+                            if (\Storage::disk('public')->exists($doc->file_path)) {
+                                $content = \Storage::disk('public')->get($doc->file_path);
+                                $mime = \Storage::disk('public')->mimeType($doc->file_path);
+                                $base64 = base64_encode($content);
+
+                                // Determinar extensión
+                                $extension = pathinfo($doc->file_path, PATHINFO_EXTENSION);
+                                $fileName = ($doc->document_type ?? 'document') . '.' . $extension;
+
+                                $documentsFiles[] = [
+                                    'name' => $doc->document_type,
+                                    'filename' => $fileName,
+                                    'mime' => $mime,
+                                    'content' => $base64
+                                ];
+                            }
+                        } catch (\Exception $e) {
+                            \Log::warning("No se pudo procesar documento para n8n: {$doc->file_path}");
+                        }
+                    }
+
+                    $payload = [
+                        // --- CARPETA DEL EMPLEADO ---
+                        'employee_folder_name' => $employeeFolderName,
+
+                        // --- IDENTIFICACION Y CONTACTO ---
+                        'employee_id' => $employee->personal_data_id,
+                        'full_name' => $employee->first_name . ' ' . $employee->last_name,
+                        'first_name' => $employee->first_name,
+                        'last_name' => $employee->last_name,
+                        'email' => $employee->email,
+                        'dni' => $employee->dni,
+                        'phone_number' => $employee->phone_number,
+                        'address' => $employee->address,
+                        'nationality' => $employee->nationality,
+                        'birthdate' => $employee->birthdate,
+                        'place_of_birth' => $employee->place_of_birth, // Corregido: Agregado y sin duplicar address
+                        'marital_status' => $employee->marital_status,
+                        'gender' => $employee->gender,
+                        'blood_group' => $employee->blood_group,
+                        'place_of_issue' => $employee->place_of_issue,
+                        'date_of_issue' => $employee->date_of_issue,
+
+                        // --- CONTRATACION ---
+                        'hiring_date' => $employee->hiring_date,
+                        'job_position' => $employee->job_position,
+                        'eps' => $employee->eps,
+
+                        // --- FIRMA ---
+                        'signature_url' => asset('storage/' . $path),
+                        'signature_base64' => $request->signature,
+                        'signed_at' => now()->toIso8601String(),
+
+                        // --- BANCARIO ---
+                        'bank_entity' => $employee->bankAccounts->first()->banking_entity ?? 'N/A',
+                        'account_number' => $employee->bankAccounts->first()->account_number ?? 'N/A',
+                        'account_type' => $employee->bankAccounts->first()->account_type ?? 'N/A',
+                        'pension_fund' => $employee->bankAccounts->first()->pension_fund ?? 'N/A',
+                        'severance_pay_fund' => $employee->bankAccounts->first()->severance_pay_fund ?? 'N/A',
+
+                        // --- SALUD ---
+                        'allergies' => optional($employee->healthData)->allergies ?? 'N/A',
+                        'diseases' => optional($employee->healthData)->diseases ?? 'N/A',
+                        'medications' => optional($employee->healthData)->medications ?? 'N/A',
+                        'additional_health_info' => optional($employee->healthData)->additional_information ?? 'N/A',
+
+                        // --- FAMILIA ---
+                        'family_name' => $employee->familyData->first()->full_name ?? 'N/A',
+                        'family_relationship' => $employee->familyData->first()->relationship ?? 'N/A',
+                        'family_dni' => $employee->familyData->first()->dni ?? 'N/A',
+                        'family_age' => $employee->familyData->first()->age ?? 'N/A',
+                        'family_gender' => $employee->familyData->first()->gender ?? 'N/A',
+                        'family_birthdate' => $employee->familyData->first()->birthdate ?? 'N/A',
+
+                        // --- ACADEMICO (Último registrado) ---
+                        'academic_degree' => $employee->academicInformation->first()->degree ?? 'N/A',
+                        'academic_institution' => $employee->academicInformation->first()->academic_institution ?? 'N/A',
+                        'academic_start_date' => $employee->academicInformation->first()->start_date_school ?? 'N/A',
+                        'academic_end_date' => $employee->academicInformation->first()->end_date_school ?? 'N/A',
+                        'academic_career' => $employee->academicInformation->first()->university_career ?? 'N/A',
+                        'professional_card_number' => $employee->academicInformation->first()->card_number ?? 'N/A',
+
+                        // --- EDUCACION ADICIONAL ---
+                        'additional_institution' => $employee->additionalEducations->first()->specialty_institution ?? 'N/A',
+                        'additional_start_date' => $employee->additionalEducations->first()->start_date_specialty ?? 'N/A',
+                        'additional_end_date' => $employee->additionalEducations->first()->end_date_specialty ?? 'N/A',
+                        'additional_course' => $employee->additionalEducations->first()->course ?? 'N/A',
+                        'additional_course_level' => $employee->additionalEducations->first()->specialty_level ?? 'N/A',
+                        'additional_methodology' => $employee->additionalEducations->first()->methodology_name ?? 'N/A',
+                        'additional_methodology_level' => $employee->additionalEducations->first()->proficiency_level ?? 'N/A',
+                        'additional_language' => $employee->additionalEducations->first()->language ?? 'N/A',
+                        'additional_language_level' => $employee->additionalEducations->first()->language_level ?? 'N/A',
+
+                        // --- CONTACTO EMERGENCIA ---
+                        'emergency_contact_name' => $employee->emergencyContacts->first()->full_name ?? 'N/A',
+                        'emergency_contact_phone' => $employee->emergencyContacts->first()->phone_number ?? 'N/A',
+                        'emergency_contact_relationship' => $employee->emergencyContacts->first()->relationship ?? 'N/A',
+
+                        // --- DOCUMENTOS (URLs) ---
+                        // Enviamos el objeto completo de links para que n8n pueda iterar o mapear específicos
+                        'documents_links' => $documentsList,
+                        'documents_files' => $documentsFiles, // Array con archivos en Base64
+
+                        // Formato texto para insertar directo en celda de sheet si se prefiere
+                        'documents_text_summary' => implode("\n", array_map(
+                            function ($v, $k) {
+                                return "$k: $v";
+                            },
+                            $documentsList,
+                            array_keys($documentsList)
+                        )),
+                    ];
+
+                    \Log::info('Enviando payload COMPLETO a n8n para: ' . $payload['full_name']);
+
+                    $response = \Illuminate\Support\Facades\Http::post($webhookUrl, $payload);
+
+                    // Lanzar excepción si el status no es 2xx
+                    $response->throw();
+
+                } catch (\Illuminate\Http\Client\RequestException $e) {
+                    // Loguear el error específico de n8n
+                    \Log::error('Error de n8n webhook:', [
+                        'status' => $e->response->status(),
+                        'body' => $e->response->body(),
+                        'url' => $webhookUrl
+                    ]);
+                    // Opcional: No bloquear el flujo si n8n falla, pero sí registrarlo
+                }
+            }
+
+            return redirect()->route('hiring.form.thank_you')
+                ->with('success', 'Firma guardada y proceso finalizado correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error guardando firma: ' . $e->getMessage());
+            return back()->with('error', 'Error al guardar la firma. Intente nuevamente.');
+        }
     }
 }
 

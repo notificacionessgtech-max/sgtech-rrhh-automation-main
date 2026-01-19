@@ -179,6 +179,18 @@
                     </select>
                 </div>
             </div>
+
+            <div class="input-row">
+                <div>
+                    <label for="pension_fund">Fondo de Pensiones</label>
+                    <input id="pension_fund" name="pension_fund" value="{{ old('pension_fund') }}">
+                </div>
+
+                <div>
+                    <label for="severance_pay_fund">Fondo de Cesantías</label>
+                    <input id="severance_pay_fund" name="severance_pay_fund" value="{{ old('severance_pay_fund') }}">
+                </div>
+            </div>
         </fieldset>
 
         {{-- ===========================
@@ -207,6 +219,54 @@
             <div>
                 <label for="additional_information">Información adicional</label>
                 <textarea id="additional_information" name="additional_information"></textarea>
+            </div>
+        </fieldset>
+
+        {{-- ===========================
+        DATOS FAMILIARES
+        =========================== --}}
+        <fieldset class="form-section">
+            <legend>Información Familiar (Cónyuge/Hijos)</legend>
+            <p class="text-sm text-gray-500 mb-4">Si no aplica, deje en blanco.</p>
+
+            <div class="input-row">
+                <div>
+                    <label for="full_name">Nombre Completo del Familiar</label>
+                    <input id="full_name" name="full_name" value="{{ old('full_name') }}">
+                </div>
+
+                <div>
+                    <label for="relationship">Parentesco</label>
+                    <input id="relationship" name="relationship" value="{{ old('relationship') }}" placeholder="Ej: Esposo/a, Hijo/a">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div>
+                    <label for="family_dni">Cédula del Familiar</label>
+                    <input id="family_dni" name="family_dni" value="{{ old('family_dni') }}">
+                </div>
+
+                <div>
+                    <label for="age">Edad</label>
+                    <input type="number" id="age" name="age" value="{{ old('age') }}">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div>
+                    <label for="family_gender">Género</label>
+                    <select id="family_gender" name="family_gender">
+                        <option value="">Seleccione</option>
+                        <option value="male">Masculino</option>
+                        <option value="female">Femenino</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="family_birthdate">Fecha de Nacimiento</label>
+                    <input type="date" id="family_birthdate" name="family_birthdate" value="{{ old('family_birthdate') }}">
+                </div>
             </div>
         </fieldset>
 
@@ -592,10 +652,14 @@
                         // Éxito
                         showAlert('success', data.message || '¡Formulario enviado exitosamente!');
 
-                        // Redirigir después de 3 segundos
+                        // Redirigir después de 1.5 segundos
                         setTimeout(() => {
-                            window.location.href = '{{ route("hiring.form.thank_you") }}';
-                        }, 3000);
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                window.location.href = '{{ route("hiring.form.thank_you") }}';
+                            }
+                        }, 1500);
 
                     } else {
                         // Error
