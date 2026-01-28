@@ -31,13 +31,6 @@
                         Invitaciónes enviadas
                     </x-nav-link>
                 </div>
-                @if (Auth::user()->getRoleNames()->first() === 'admin')
-                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                        <x-nav-link :href="route('register')" :active="request()->routeIs('register')">
-                            Crear usuario
-                        </x-nav-link>
-                    </div>
-                @endif
             </div>
 
             <!-- Settings Dropdown -->
@@ -67,8 +60,7 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
 
-                            <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault();
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 Cerrar sesión
                             </x-dropdown-link>
@@ -126,8 +118,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
+                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>

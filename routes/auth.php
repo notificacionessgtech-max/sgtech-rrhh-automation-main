@@ -36,10 +36,11 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
 });
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('register', [RegisterController::class, 'store']);
-});
+// User registration disabled - Only seeded users (admin and RRHH) are used
+// Route::middleware(['auth', 'role:admin'])->group(function () {
+//     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
+//     Route::post('register', [RegisterController::class, 'store']);
+// });
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SendWelcomeEmailRequest;
-use App\Mail\WelcomeEmail;
 use App\Models\InvitationLink;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -26,9 +25,9 @@ class SendWelcomeEmailController extends Controller
 
         try {
             $invitation = InvitationLink::create([
-                'uuid'       => $uuid,
-                'email'      => $email,
-                'status'     => 'pending',
+                'uuid' => $uuid,
+                'email' => $email,
+                'status' => 'pending',
                 'expires_at' => $expiresAt,
             ]);
 
@@ -38,9 +37,22 @@ class SendWelcomeEmailController extends Controller
                 ['uuid' => $uuid]
             );
 
-            Mail::to($email)->send(
-                new WelcomeEmail($invitation, $signedURL)
-            );
+            // Enviar datos a n8n para que maneje el envío del correo
+            $webhookUrl = env('N8N_INVITATION_WEBHOOK_URL');
+
+            if (!$webhookUrl) {
+                throw new \Exception('N8N_INVITATION_WEBHOOK_URL no está configurada en .env');
+            }
+
+            $response = Http::timeout(10)->post($webhookUrl, [
+                'email' => $email,
+                'invitation_link' => $signedURL,
+                'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
+            ]);
+
+            if ($response->failed()) {
+                throw new \Exception('Error al enviar webhook a n8n: ' . $response->body());
+            }
 
             return response()->json([
                 'success' => true,

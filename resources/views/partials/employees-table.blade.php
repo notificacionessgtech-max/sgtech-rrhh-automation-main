@@ -58,7 +58,7 @@
 
     {{-- MODAL REDISEÑADO --}}
     <div id="userDetailModal"
-        class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center p-4">
+        class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm overflow-y-auto h-full w-full modal-hidden z-50 flex items-center justify-center p-4">
         <div
             class="relative w-full max-w-6xl bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl transform transition-all">
 
@@ -488,7 +488,7 @@
 
         // Resetear
         documentCount.innerHTML = '';
-        modal.classList.remove('hidden');
+        modal.classList.remove('modal-hidden');
         modalContent.innerHTML = `
         <div class="text-center py-8">
             <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-600"></div>
@@ -522,7 +522,7 @@
     }
 
     function closeModal() {
-        document.getElementById('userDetailModal').classList.add('hidden');
+        document.getElementById('userDetailModal').classList.add('modal-hidden');
         currentEmployeeId = null;
     }
 
@@ -534,12 +534,12 @@
 
     // ==================== INICIALIZACIÓN ====================
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         console.log('Dashboard cargado, inicializando eventos...');
 
         // Asignar eventos a botones de detalles
         document.querySelectorAll('.btn-detail').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const employeeId = this.getAttribute('data-id');
                 console.log('Botón clickeado, ID:', employeeId);
                 showEmployeeDetails(employeeId);
@@ -549,15 +549,15 @@
         // Cerrar modal al hacer click fuera
         const modal = document.getElementById('userDetailModal');
         if (modal) {
-            modal.addEventListener('click', function(e) {
+            modal.addEventListener('click', function (e) {
                 if (e.target === this) {
                     closeModal();
                 }
             });
 
             // Cerrar con tecla Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !modal.classList.contains('modal-hidden')) {
                     closeModal();
                 }
             });
@@ -573,11 +573,16 @@
     }
 
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
-    .hidden {
+    .modal-hidden {
         display: none !important;
     }
 
@@ -590,12 +595,13 @@
         from {
             opacity: 0;
         }
+
         to {
             opacity: 1;
         }
     }
 
-    #userDetailModal > div {
+    #userDetailModal>div {
         animation: slideUp 0.3s ease-out;
     }
 
@@ -604,6 +610,7 @@
             transform: translateY(20px);
             opacity: 0;
         }
+
         to {
             transform: translateY(0);
             opacity: 1;

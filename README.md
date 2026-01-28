@@ -16,7 +16,7 @@ docker-compose up
 
 4. Credenciales de acceso:
    * admin@gmail.com
-   * 12345678
+   * Adm1n$ecur3P@ssw0rd2026!
 
-   * luisa@gmail.com
-   * 12345678
+   * rrhh@gmail.com
+   * RRHH$ecur3P@ssw0rd2026!

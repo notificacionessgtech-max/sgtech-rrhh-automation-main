@@ -100,8 +100,8 @@
                     <label for="gender">Sexo</label>
                     <select id="gender" name="gender">
                         <option value="">Seleccione</option>
-                        <option value="male">Masculino</option>
-                        <option value="female">Femenino</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
                     </select>
                 </div>
 
@@ -109,11 +109,11 @@
                     <label for="marital_status">Estado civil</label>
                     <select id="marital_status" name="marital_status">
                         <option value="">Seleccione</option>
-                        <option value="single">Soltero</option>
-                        <option value="married">Casado</option>
-                        <option value="divorced">Divorciado</option>
-                        <option value="widowed">Viudo</option>
-                        <option value="free union">Unión libre</option>
+                        <option value="Soltero">Soltero</option>
+                        <option value="Casado">Casado</option>
+                        <option value="Divorciado">Divorciado</option>
+                        <option value="Viudo">Viudo</option>
+                        <option value="Unión libre">Unión libre</option>
                     </select>
                 </div>
             </div>
@@ -174,8 +174,8 @@
                     <label for="account_type">Tipo de cuenta</label>
                     <select id="account_type" name="account_type">
                         <option value="">Seleccione</option>
-                        <option value="savings">Ahorros</option>
-                        <option value="current">Corriente</option>
+                        <option value="Ahorros">Ahorros</option>
+                        <option value="Corriente">Corriente</option>
                     </select>
                 </div>
             </div>
@@ -258,8 +258,8 @@
                     <label for="family_gender">Género</label>
                     <select id="family_gender" name="family_gender">
                         <option value="">Seleccione</option>
-                        <option value="male">Masculino</option>
-                        <option value="female">Femenino</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
                     </select>
                 </div>
 
@@ -368,9 +368,9 @@
                     <label for="specialty_level">Nivel</label>
                     <select id="specialty_level" name="specialty_level">
                         <option value="">Seleccione</option>
-                        <option value="basic">Básico</option>
-                        <option value="intermediate">Intermedio</option>
-                        <option value="advanced">Avanzado</option>
+                        <option value="Básico">Básico</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Avanzado">Avanzado</option>
                     </select>
                 </div>
             </div>
@@ -385,9 +385,9 @@
                     <label for="proficiency_level">Nivel</label>
                     <select id="proficiency_level" name="proficiency_level">
                         <option value="">Seleccione</option>
-                        <option value="basic">Básico</option>
-                        <option value="intermediate">Intermedio</option>
-                        <option value="advanced">Avanzado</option>
+                        <option value="Básico">Básico</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Avanzado">Avanzado</option>
                     </select>
                 </div>
             </div>
@@ -402,9 +402,9 @@
                     <label for="language_level">Nivel</label>
                     <select id="language_level" name="language_level">
                         <option value="">Seleccione</option>
-                        <option value="basic">Básico</option>
-                        <option value="intermediate">Intermedio</option>
-                        <option value="advanced">Avanzado</option>
+                        <option value="Básico">Básico</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Avanzado">Avanzado</option>
                     </select>
                 </div>
             </div>

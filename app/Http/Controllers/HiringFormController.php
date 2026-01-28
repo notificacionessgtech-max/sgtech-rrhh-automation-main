@@ -120,8 +120,8 @@ class HiringFormController extends Controller
                 'date_of_issue' => 'required|date',
                 'birthdate' => 'required|date',
                 'place_of_birth' => 'required|string|max:50', // ← AGREGADO
-                'gender' => 'required|in:male,female',
-                'marital_status' => 'required|in:single,married,divorced,widowed,free union',
+                'gender' => 'required|in:Masculino,Femenino',
+                'marital_status' => 'required|in:Soltero,Casado,Divorciado,Viudo,Unión libre',
                 'nationality' => 'required|string|max:50', // ← AGREGADO
                 'email' => 'required|email|unique:personal_data,email',
                 'phone_number' => 'required|string|max:20',
@@ -132,7 +132,7 @@ class HiringFormController extends Controller
                 // BANK
                 'banking_entity' => 'nullable|string|max:50',
                 'account_number' => 'nullable|string|max:50',
-                'account_type' => 'nullable|in:current,savings,payroll',
+                'account_type' => 'nullable|in:Corriente,Ahorros',
                 'pension_fund' => 'nullable|string|max:50',
                 'severance_pay_fund' => 'nullable|string|max:50',
 
@@ -155,18 +155,18 @@ class HiringFormController extends Controller
                 'start_date_specialty' => 'nullable|date',
                 'end_date_specialty' => 'nullable|date',
                 'course' => 'nullable|string|max:100',
-                'specialty_level' => 'nullable|in:basic,intermediate,advanced',
+                'specialty_level' => 'nullable|in:Básico,Intermedio,Avanzado',
                 'methodology_name' => 'nullable|string|max:100',
-                'proficiency_level' => 'nullable|in:basic,intermediate,advanced',
+                'proficiency_level' => 'nullable|in:Básico,Intermedio,Avanzado',
                 'language' => 'nullable|string|max:100',
-                'language_level' => 'nullable|in:basic,intermediate,advanced',
+                'language_level' => 'nullable|in:Básico,Intermedio,Avanzado',
 
                 // FAMILY
                 'relationship' => 'nullable|string',
                 'family_dni' => 'nullable|string',
                 'full_name' => 'nullable|string',
                 'age' => 'nullable|integer',
-                'family_gender' => 'nullable|in:male,female',
+                'family_gender' => 'nullable|in:Masculino,Femenino',
                 'family_birthdate' => 'nullable|date',
 
                 // EMERGENCY
