@@ -9,9 +9,10 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 2. Ejecutar migraciones (La base de datos debe estar lista)
-echo "📦 Ejecutando migraciones de base de datos..."
+# 2. Ejecutar migraciones y seeders (La base de datos debe estar lista)
+echo "📦 Ejecutando migraciones y seeders de base de datos..."
 php artisan migrate --force
+php artisan db:seed --force
 
 # 3. Iniciar Apache en primer plano
 echo "🔥 Iniciando Apache..."
