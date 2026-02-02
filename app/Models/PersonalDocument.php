@@ -12,7 +12,7 @@ class PersonalDocument extends Model
 
     protected $table = 'personal_documents';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'personal_document_id';
     public $incrementing = true;
     protected $keyType = 'int';
 
