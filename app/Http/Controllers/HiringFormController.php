@@ -12,6 +12,7 @@ use App\Models\EmergencyContact;
 use App\Models\PersonalDocument;
 use App\Models\InvitationLink;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 
 class HiringFormController extends Controller
@@ -311,9 +312,19 @@ class HiringFormController extends Controller
 
 
 
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Por favor corrige los errores en el formulario.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error en HiringFormController@store: ' . $e->getMessage()); // <--- ADDED LOGGING
+            \Log::error('Error en HiringFormController@store: ' . $e->getMessage());
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
