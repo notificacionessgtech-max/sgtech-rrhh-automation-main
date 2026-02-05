@@ -60,7 +60,8 @@ class HiringFormController extends Controller
                 'data' => $employee
             ]);
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al cargar los datos: ' . $e->getMessage()
@@ -109,30 +110,30 @@ class HiringFormController extends Controller
 
             // Validar todos los campos
             $validated = $request->validate([
-                // PERSONAL DATA (CAMPOS REQUERIDOS SEGÚN MIGRACIÓN)
-                'hiring_date' => 'required|date', // ← AGREGADO
-                'job_position' => 'required|string|max:50', // ← AGREGADO
-                'first_name' => 'required|string|max:30',
-                'middle_name' => 'nullable|string|max:30',
-                'last_name' => 'required|string|max:30',
-                'second_last_name' => 'nullable|string|max:30',
-                'dni' => 'required|string|max:20|unique:personal_data,dni',
+                // PERSONAL DATA
+                'hiring_date' => 'required|date',
+                'job_position' => 'required|string|max:50',
+                'first_name' => 'required|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u|max:30',
+                'middle_name' => 'nullable|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u|max:30',
+                'last_name' => 'required|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u|max:30',
+                'second_last_name' => 'nullable|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u|max:30',
+                'dni' => 'required|regex:/^[0-9]+$/|max:20|unique:personal_data,dni',
                 'place_of_issue' => 'required|string|max:50',
                 'date_of_issue' => 'required|date',
                 'birthdate' => 'required|date',
-                'place_of_birth' => 'required|string|max:50', // ← AGREGADO
+                'place_of_birth' => 'required|string|max:50',
                 'gender' => 'required|in:Masculino,Femenino',
                 'marital_status' => 'required|in:Soltero,Casado,Divorciado,Viudo,Unión libre',
-                'nationality' => 'required|string|max:50', // ← AGREGADO
-                'email' => 'required|email|unique:personal_data,email',
-                'phone_number' => 'required|string|max:20',
+                'nationality' => 'required|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u|max:50',
+                'email' => 'required|email:rfc,dns|unique:personal_data,email',
+                'phone_number' => 'required|regex:/^[0-9]+$/|max:20',
                 'address' => 'required|string',
                 'eps' => 'required|string|max:50',
                 'blood_group' => 'required|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
 
                 // BANK
                 'banking_entity' => 'nullable|string|max:50',
-                'account_number' => 'nullable|string|max:50',
+                'account_number' => 'nullable|regex:/^[0-9]+$/|max:50',
                 'account_type' => 'nullable|in:Corriente,Ahorros',
                 'pension_fund' => 'nullable|string|max:50',
                 'severance_pay_fund' => 'nullable|string|max:50',
@@ -149,7 +150,7 @@ class HiringFormController extends Controller
                 'end_date_school' => 'nullable|date',
                 'university_career' => 'nullable|string',
                 'degree' => 'nullable|string',
-                'card_number' => 'nullable|string',
+                'card_number' => 'nullable|regex:/^[0-9A-Za-z]+$/',
 
                 // ADDITIONAL EDUCATION
                 'specialty_institution' => 'nullable|string|max:100',
@@ -164,20 +165,49 @@ class HiringFormController extends Controller
 
                 // FAMILY
                 'relationship' => 'nullable|string',
-                'family_dni' => 'nullable|string',
-                'full_name' => 'nullable|string',
+                'family_dni' => 'nullable|regex:/^[0-9]+$/',
+                'full_name' => 'nullable|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
                 'age' => 'nullable|integer',
                 'family_gender' => 'nullable|in:Masculino,Femenino',
                 'family_birthdate' => 'nullable|date',
 
                 // EMERGENCY
-                'emergency_contact_full_name' => 'required|string|max:100',
-                'emergency_contact_phone_number' => 'required|string|max:20',
+                'emergency_contact_full_name' => 'required|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u|max:100',
+                'emergency_contact_phone_number' => 'required|regex:/^[0-9]+$/|max:20',
                 'emergency_contact_relationship' => 'required|string|max:50',
 
                 // DOCUMENTOS
                 'documents' => 'nullable|array',
                 'documents.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+            ], [
+                // MENSAJES PERSONALIZADOS EN ESPAÑOL
+                'required' => 'El campo :attribute es obligatorio.',
+                'date' => 'El campo :attribute debe ser una fecha válida.',
+                'email' => 'El correo electrónico debe tener un formato válido.',
+                'unique' => 'Este :attribute ya se encuentra registrado.',
+                'in' => 'La opción seleccionada para :attribute no es válida.',
+                'regex' => 'El formato del campo :attribute no es válido (solo letras para nombres o solo números para documentos/teléfonos).',
+                'integer' => 'El campo :attribute debe ser un número entero.',
+                'mimes' => 'Los documentos deben estar en formato: pdf, jpg, jpeg, png.',
+                'max' => 'El campo :attribute no debe superar los :max caracteres.',
+                'numeric' => 'El campo :attribute debe ser numérico.',
+                'exists' => 'La invitación seleccionada no es válida.',
+            ], [
+                // ATRIBUTOS EN ESPAÑOL
+                'first_name' => 'Nombre',
+                'last_name' => 'Apellido',
+                'dni' => 'Cédula',
+                'email' => 'Correo electrónico',
+                'phone_number' => 'Teléfono',
+                'hiring_date' => 'Fecha de contratación',
+                'job_position' => 'Cargo',
+                'birthdate' => 'Fecha de nacimiento',
+                'nationality' => 'Nacionalidad',
+                'emergency_contact_full_name' => 'Nombre de contacto de emergencia',
+                'emergency_contact_phone_number' => 'Teléfono de contacto de emergencia',
+                'family_dni' => 'Cédula del familiar',
+                'full_name' => 'Nombre del familiar',
+                'account_number' => 'Número de cuenta',
             ]);
 
             // CREAR PERSONAL DATA
@@ -215,6 +245,10 @@ class HiringFormController extends Controller
             ]);
 
             // HEALTH
+            \Log::info('Guardando datos de salud para empleado ID: ' . $personal->personal_data_id, [
+                'additional_information' => $validated['additional_information'] ?? 'NULL'
+            ]);
+
             HealthData::create([
                 'personal_data_id' => $personal->personal_data_id,
                 'allergies' => $validated['allergies'] ?? null,
@@ -312,7 +346,8 @@ class HiringFormController extends Controller
 
 
 
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             DB::rollBack();
             if ($request->ajax()) {
                 return response()->json([
@@ -322,7 +357,8 @@ class HiringFormController extends Controller
                 ], 422);
             }
             throw $e;
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error en HiringFormController@store: ' . $e->getMessage());
             if ($request->ajax()) {
@@ -418,10 +454,13 @@ class HiringFormController extends Controller
                                     'content' => $base64
                                 ];
                             }
-                        } catch (\Exception $e) {
+                        }
+                        catch (\Exception $e) {
                             \Log::warning("No se pudo procesar documento para n8n: {$doc->file_path}");
                         }
                     }
+
+                    $extraEdu = optional($employee->additionalEducations->first());
 
                     $payload = [
                         // --- CARPETA DEL EMPLEADO ---
@@ -429,16 +468,18 @@ class HiringFormController extends Controller
 
                         // --- IDENTIFICACION Y CONTACTO ---
                         'employee_id' => $employee->personal_data_id,
-                        'full_name' => $employee->first_name . ' ' . $employee->last_name,
+                        'full_name' => $employee->first_name . ($employee->middle_name ? ' ' . $employee->middle_name : '') . ' ' . $employee->last_name . ($employee->second_last_name ? ' ' . $employee->second_last_name : ''),
                         'first_name' => $employee->first_name,
+                        'middle_name' => $employee->middle_name,
                         'last_name' => $employee->last_name,
+                        'second_last_name' => $employee->second_last_name,
                         'email' => $employee->email,
                         'dni' => $employee->dni,
                         'phone_number' => $employee->phone_number,
                         'address' => $employee->address,
                         'nationality' => $employee->nationality,
                         'birthdate' => $employee->birthdate,
-                        'place_of_birth' => $employee->place_of_birth, // Corregido: Agregado y sin duplicar address
+                        'place_of_birth' => $employee->place_of_birth,
                         'marital_status' => $employee->marital_status,
                         'gender' => $employee->gender,
                         'blood_group' => $employee->blood_group,
@@ -456,49 +497,49 @@ class HiringFormController extends Controller
                         'signed_at' => now()->toIso8601String(),
 
                         // --- BANCARIO ---
-                        'bank_entity' => $employee->bankAccounts->first()->banking_entity ?? 'N/A',
-                        'account_number' => $employee->bankAccounts->first()->account_number ?? 'N/A',
-                        'account_type' => $employee->bankAccounts->first()->account_type ?? 'N/A',
-                        'pension_fund' => $employee->bankAccounts->first()->pension_fund ?? 'N/A',
-                        'severance_pay_fund' => $employee->bankAccounts->first()->severance_pay_fund ?? 'N/A',
+                        'bank_entity' => optional($employee->bankAccounts->first())->banking_entity,
+                        'account_number' => optional($employee->bankAccounts->first())->account_number,
+                        'account_type' => optional($employee->bankAccounts->first())->account_type,
+                        'pension_fund' => optional($employee->bankAccounts->first())->pension_fund,
+                        'severance_pay_fund' => optional($employee->bankAccounts->first())->severance_pay_fund,
 
                         // --- SALUD ---
-                        'allergies' => optional($employee->healthData)->allergies ?? 'N/A',
-                        'diseases' => optional($employee->healthData)->diseases ?? 'N/A',
-                        'medications' => optional($employee->healthData)->medications ?? 'N/A',
-                        'additional_health_info' => optional($employee->healthData)->additional_information ?? 'N/A',
+                        'allergies' => optional($employee->healthData)->allergies,
+                        'diseases' => optional($employee->healthData)->diseases,
+                        'medications' => optional($employee->healthData)->medications,
+                        'health_additional_info' => optional($employee->healthData)->additional_information,
 
                         // --- FAMILIA ---
-                        'family_name' => $employee->familyData->first()->full_name ?? 'N/A',
-                        'family_relationship' => $employee->familyData->first()->relationship ?? 'N/A',
-                        'family_dni' => $employee->familyData->first()->dni ?? 'N/A',
-                        'family_age' => $employee->familyData->first()->age ?? 'N/A',
-                        'family_gender' => $employee->familyData->first()->gender ?? 'N/A',
-                        'family_birthdate' => $employee->familyData->first()->birthdate ?? 'N/A',
+                        'family_name' => optional($employee->familyData->first())->full_name,
+                        'family_relationship' => optional($employee->familyData->first())->relationship,
+                        'family_dni' => optional($employee->familyData->first())->dni,
+                        'family_age' => optional($employee->familyData->first())->age,
+                        'family_gender' => optional($employee->familyData->first())->gender,
+                        'family_birthdate' => optional($employee->familyData->first())->birthdate,
 
                         // --- ACADEMICO (Último registrado) ---
-                        'academic_degree' => $employee->academicInformation->first()->degree ?? 'N/A',
-                        'academic_institution' => $employee->academicInformation->first()->academic_institution ?? 'N/A',
-                        'academic_start_date' => $employee->academicInformation->first()->start_date_school ?? 'N/A',
-                        'academic_end_date' => $employee->academicInformation->first()->end_date_school ?? 'N/A',
-                        'academic_career' => $employee->academicInformation->first()->university_career ?? 'N/A',
-                        'professional_card_number' => $employee->academicInformation->first()->card_number ?? 'N/A',
+                        'academic_degree' => optional($employee->academicInformation->first())->degree,
+                        'academic_institution' => optional($employee->academicInformation->first())->academic_institution,
+                        'academic_start_date' => optional($employee->academicInformation->first())->start_date_school,
+                        'academic_end_date' => optional($employee->academicInformation->first())->end_date_school,
+                        'academic_career' => optional($employee->academicInformation->first())->university_career,
+                        'professional_card_number' => optional($employee->academicInformation->first())->card_number,
 
                         // --- EDUCACION ADICIONAL ---
-                        'additional_institution' => $employee->additionalEducations->first()->specialty_institution ?? 'N/A',
-                        'additional_start_date' => $employee->additionalEducations->first()->start_date_specialty ?? 'N/A',
-                        'additional_end_date' => $employee->additionalEducations->first()->end_date_specialty ?? 'N/A',
-                        'additional_course' => $employee->additionalEducations->first()->course ?? 'N/A',
-                        'additional_course_level' => $employee->additionalEducations->first()->specialty_level ?? 'N/A',
-                        'additional_methodology' => $employee->additionalEducations->first()->methodology_name ?? 'N/A',
-                        'additional_methodology_level' => $employee->additionalEducations->first()->proficiency_level ?? 'N/A',
-                        'additional_language' => $employee->additionalEducations->first()->language ?? 'N/A',
-                        'additional_language_level' => $employee->additionalEducations->first()->language_level ?? 'N/A',
+                        'specialty_institution' => $extraEdu->specialty_institution,
+                        'start_date_specialty' => $extraEdu->start_date_specialty,
+                        'end_date_specialty' => $extraEdu->end_date_specialty,
+                        'course_name' => $extraEdu->course,
+                        'specialty_level' => $extraEdu->specialty_level,
+                        'methodology_name' => $extraEdu->methodology_name,
+                        'proficiency_level' => $extraEdu->proficiency_level,
+                        'language' => $extraEdu->language,
+                        'language_level' => $extraEdu->language_level,
 
                         // --- CONTACTO EMERGENCIA ---
-                        'emergency_contact_name' => $employee->emergencyContacts->first()->full_name ?? 'N/A',
-                        'emergency_contact_phone' => $employee->emergencyContacts->first()->phone_number ?? 'N/A',
-                        'emergency_contact_relationship' => $employee->emergencyContacts->first()->relationship ?? 'N/A',
+                        'emergency_contact_name' => optional($employee->emergencyContacts->first())->full_name,
+                        'emergency_contact_phone' => optional($employee->emergencyContacts->first())->phone_number,
+                        'emergency_contact_relationship' => optional($employee->emergencyContacts->first())->relationship,
 
                         // --- DOCUMENTOS (URLs) ---
                         // Enviamos el objeto completo de links para que n8n pueda iterar o mapear específicos
@@ -507,39 +548,44 @@ class HiringFormController extends Controller
 
                         // Formato texto para insertar directo en celda de sheet si se prefiere
                         'documents_text_summary' => implode("\n", array_map(
-                            function ($v, $k) {
-                                return "$k: $v";
-                            },
-                            $documentsList,
-                            array_keys($documentsList)
-                        )),
+                        function ($v, $k) {
+                        return "$k: $v";
+                    },
+                        $documentsList,
+                        array_keys($documentsList)
+                    )),
                     ];
 
-                    \Log::info('Enviando payload COMPLETO a n8n para: ' . $payload['full_name']);
+                    \Log::info('Enviando payload COMPLETO a n8n para: ' . $payload['full_name'], [
+                        'payload' => array_keys($payload),
+                        'education_sample' => $payload['specialty_institution'] ?? 'EMPTY',
+                        'health_sample' => $payload['health_additional_info'] ?? 'EMPTY'
+                    ]);
 
                     $response = \Illuminate\Support\Facades\Http::post($webhookUrl, $payload);
 
                     // Lanzar excepción si el status no es 2xx
                     $response->throw();
 
-                } catch (\Illuminate\Http\Client\RequestException $e) {
+                }
+                catch (\Illuminate\Http\Client\RequestException $e) {
                     // Loguear el error específico de n8n
                     \Log::error('Error de n8n webhook:', [
                         'status' => $e->response->status(),
                         'body' => $e->response->body(),
                         'url' => $webhookUrl
                     ]);
-                    // Opcional: No bloquear el flujo si n8n falla, pero sí registrarlo
+                // Opcional: No bloquear el flujo si n8n falla, pero sí registrarlo
                 }
             }
 
             return redirect()->route('hiring.form.thank_you')
                 ->with('success', 'Firma guardada y proceso finalizado correctamente.');
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             \Log::error('Error guardando firma: ' . $e->getMessage());
             return back()->with('error', 'Error al guardar la firma. Intente nuevamente.');
         }
     }
 }
-
